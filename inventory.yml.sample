@@ -1,0 +1,7 @@
+all:
+  hosts:
+    calico:
+      ansible_user: calico
+      ansible_password: password
+      ansible_become_password: password
+      ansible_python_interpreter: "/run/current-system/sw/bin/python3.7"
