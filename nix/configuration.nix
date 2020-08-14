@@ -5,8 +5,11 @@
 { config, pkgs, ... }:
 
 {
-  imports = [ # Include the results of the hardware scan.
+  imports = [
     ./hardware-configuration.nix
+    ./modules/dns.nix
+    ./modules/vpn.nix
+    ./modules/satan.nix
   ];
 
   # Use the GRUB 2 boot loader.
@@ -23,50 +26,36 @@
   networking.interfaces.ens3.useDHCP = true;
   networking.interfaces.ens7.useDHCP = true;
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Select internationalisation properties.
-  # i18n.defaultLocale = "en_US.UTF-8";
-  # console = {
-  #   font = "Lat2-Terminus16";
-  #   keyMap = "us";
-  # };
-
   # Set your time zone.
   time.timeZone = "America/New_York";
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
-  environment.systemPackages = with pkgs; [ wget vim python3 ];
+  # List packages installed in system profile.
+  environment.systemPackages = with pkgs; [ python3 vim iperf ];
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  #   pinentryFlavor = "gnome3";
-  # };
+  networking.firewall.enable = true;
+  networking.firewall.allowedTCPPorts = [ 22 53 3080 5201 ];
+  networking.firewall.allowedUDPPorts = [ 5201 9993 51820 ];
+  networking.firewall.allowedUDPPortRanges = [{
+    from = 60000;
+    to = 61000;
+  }];
 
-  # List services that you want to enable:
+  # Enable Mosh
+  programs.mosh.enable = true;
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
   services.openssh.permitRootLogin = "no";
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  # Services
+  services.dns = { enable = true; };
+  services.vpn = { enable = true; };
+  services.satan = { enable = true; };
 
-  # Enable Mosh
-  programs.mosh.enable = true;
-
+  # Extra users
   users.extraUsers.calico = {
     uid = 1001;
+    createHome = true;
     extraGroups = [ "wheel" ];
     useDefaultShell = true;
   };
